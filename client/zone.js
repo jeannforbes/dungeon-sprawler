@@ -1,67 +1,4 @@
-class SceneManager{
-    constructor(){
-        this.camera = new THREE.PerspectiveCamera(
-            45,
-            window.innerWidth/window.innerHeight,
-            1,
-            1000);
-        this.controls = new THREE.OrbitControls(this.camera);
-        this.camera.position.set(0,0,0);
-        this.controls.update();
-        this.scene = new THREE.Scene();
-        this.manager = new THREE.LoadingManager();
-        this.loader = new THREE.ObjectLoader(this.manager);
-        this.renderer = new THREE.WebGLRenderer();
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-
-        //this.loadModels();
-        this.models = {};
-
-        // EVENT LISTENERS
-        window.onresize = this.onWindowResize;
-
-        document.body.appendChild(this.renderer.domElement);
-
-        this.animate();
-    }
-    animate(){
-        requestAnimationFrame( this.animate.bind(this) );
-        this.controls.update();
-        this.renderer.render(this.scene, this.camera);
-    }
-
-    loadModels(){
-        let _this = this;
-
-        /* The jsons are scenes, not meshes!  Problem! */
-        //this.loader.load('floortile0.json', (text) => { _this.models['floor0'] = text; });
-        //this.loader.load('walltile0.json', (text) => { _this.models['floor0'] = text; });
-
-    }
-
-    addFloorTile(){
-        addCube(50,20,50, 0xffffff)
-    }
-
-    addCube(w, h, d, color){
-        let geometry = new THREE.BoxBufferGeometry( w, h, d);
-        let material = new THREE.MeshBasicMaterial( { color: color } );
-        let mesh = new THREE.Mesh( geometry, material );
-        this.scene.add( mesh );
-        return mesh;
-    }
-
-    /* EVENT LISTENERS */
-
-    onWindowResize() {
-        if(this.camera){
-            this.camera.aspect = window.innerWidth / window.innerHeight;
-            this.camera.updateProjectionMatrix();
-            this.renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-    }
-}
+const TILE_WIDTH = 3;
 
 class Zone{
     constructor(io, data){
@@ -75,15 +12,27 @@ class Zone{
             players: {},
             enemies: {},
         }
-        this.layout = {
-            grid: {},
+        this.grid = {
+            width : 5,
+            depth : 5,
+            height: 5,
+            tileWidth: 3,
             objects: {}
         };
+
+        this.setupScene();
 
     }
 
     setupScene(){
-        let cube = this.sceneManager.addCube(100,100,100,0xff0000);
+
+        // Make walls
+        for(let x= -this.grid.width/2; x<this.grid.width/2; x++){
+            for(let z = -this.grid.depth/2; z<this.grid.depth/2; z++){
+                let p = this.sceneManager.addCube(TILE_WIDTH-0.5,1,TILE_WIDTH-0.5, 0x338855);
+                p.position.set(x*TILE_WIDTH, 0, z*TILE_WIDTH);
+            }
+        }
     }
 
     update(){
