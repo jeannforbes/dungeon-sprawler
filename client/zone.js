@@ -18,7 +18,7 @@ class Zone{
     }
 
     setupScene(){
-        this.sceneManager.addCube(100,100,100,0xff0000);
+        let cube = this.sceneManager.addCube(100,100,100,0xff0000);
     }
 
     update(){
