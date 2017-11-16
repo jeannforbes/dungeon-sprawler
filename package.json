@@ -5,8 +5,9 @@
   "main": "app.js",
   "scripts": {
     "start": "node ./app.js",
-    "dev": "nodemon .app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon ./app.js",
+    "pretest": "eslint ./src --fix",
+    "test": "echo \"Tests complete\""
   },
   "repository": {
     "type": "git",
@@ -23,11 +24,15 @@
   },
   "homepage": "https://github.com/jeannforbes/dungeon-sprawler#readme",
   "devDependencies": {
-    "nodemon": "^1.12.1"
+    "nodemon": "^1.12.1",
+    "eslint": "^4.6.1",
+    "eslint-config-airbnb": "^15.1.0",
+    "eslint-plugin-import": "^2.7.0"
   },
   "dependencies": {
     "express": "^4.16.2",
     "socketio": "^1.0.0",
+    "three": "^0.88.0",
     "victor": "^1.1.0"
   }
 }

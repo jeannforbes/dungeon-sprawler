@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href='/style.css' rel='stylesheet'>
+</head>
+<body>
+
+<!-- DEPENDENCIES -->
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/88/three.js"></script>
+<script src="https://npmcdn.com/babel-core@5.8.38/browser.min.js"></script>
+
+<!-- LIB -->
+<script src="three-orbitcontrols.min.js"></script>
+
+<!-- MY SCRIPTS -->
+<script src="/enemy.js"></script>
+<script src="/player.js"></script>
+<script src="/scenemanager.js"></script>
+<script src="/zone.js"></script>
+<script src="/main.js"></script>
+
+<script>// type="text/babel" >
+"use strict";
+
+let socket;
+let zone;
+
+const init = () => {
+    socket = io.connect();
+
+    socket.on('joinDungeon', (data) => {
+        console.log('Joining dungeon...', data);
+
+        // Make your zone
+        zone = new Zone(io, data);
+
+        // inform other clients of your new zone
+        socket.emit('msg', (data) => {
+            msg: 'newzone'
+            // relevant info (name, loc, etc.)
+        });
+    });
+};
+
+window.onload = init;
+
+</script>
+
+</body>
+</html>
