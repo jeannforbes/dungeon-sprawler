@@ -6,19 +6,27 @@ class SceneManager{
             1,
             1000);
         this.controls = new THREE.OrbitControls(this.camera);
-        this.camera.position.set(0,0,20);
+        this.camera.position.set(20,20,20);
         this.controls.update();
         this.scene = new THREE.Scene();
         this.manager = new THREE.LoadingManager();
-        this.loader = new THREE.ObjectLoader(this.manager);
+        this.texLoader = new THREE.TextureLoader();
+        this.objectLoader = new THREE.ObjectLoader(this.manager);
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-        this.scene.add(new THREE.DirectionalLight(0xffffff,0.5));
+        let directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        this.scene.add(directionalLight);
 
         // EVENT LISTENERS
-        window.onresize = this.onWindowResize;
+        window.addEventListener('resize', function(){
+            if(this.camera){
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }, false);
 
         document.body.appendChild(this.renderer.domElement);
 
@@ -34,19 +42,40 @@ class SceneManager{
         let _this = this;
 
         /* The jsons are scenes, not meshes!  Problem! */
-        //this.loader.load('floortile0.json', (text) => { _this.models['floor0'] = text; });
-        //this.loader.load('walltile0.json', (text) => { _this.models['floor0'] = text; });
+        //this.objectLoader.load('floortile0.json', (text) => { _this.models['floor0'] = text; });
+        //this.objectLoader.load('walltile0.json', (text) => { _this.models['floor0'] = text; });
 
     }
 
-    addFloorTile(){
-        addCube(5,20,50,0xffffff)
+    loadMaterial(path){
+        let texture = this.texLoader.load(
+            // resource URL
+            path,
+            // Function when resource is loaded
+            function ( texture ) {
+                // in this example we create the material when the texture is loaded
+                var material = new THREE.MeshBasicMaterial( {
+                    map: texture
+                 } );
+            },
+            // Function called when download progresses
+            function ( xhr ) {
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            },
+            // Function called when download errors
+            function ( xhr ) {
+                console.error( 'An error happened' );
+            }
+        );
+        return (new THREE.MeshBasicMaterial({map: texture}));
     }
 
-    addCube(w, h, d, color){
+    addCube(w, h, d, path){
         let geometry = new THREE.BoxBufferGeometry( w, h, d);
-        let material = new THREE.MeshBasicMaterial( { color: color } );
-        let mesh = new THREE.Mesh( geometry, material );
+        let material = this.loadMaterial(path);
+        material.wrapS = THREE.RepeatWrapping;
+        material.wrapT = THREE.RepeatWrapping;
+        let mesh = new THREE.Mesh( geometry, material);
         this.scene.add( mesh );
         return mesh;
     }
@@ -57,15 +86,5 @@ class SceneManager{
         var plane = new THREE.Mesh( geometry, material );
         this.scene.add( plane );
         return plane;
-    }
-
-    /* EVENT LISTENERS */
-
-    onWindowResize() {
-        if(this.camera){
-            this.camera.aspect = window.innerWidth / window.innerHeight;
-            this.camera.updateProjectionMatrix();
-            this.renderer.setSize(window.innerWidth, window.innerHeight);
-        }
     }
 }

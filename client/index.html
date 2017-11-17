@@ -15,9 +15,9 @@
 <script src="three-orbitcontrols.min.js"></script>
 
 <!-- MY SCRIPTS -->
+<script src="/scenemanager.js"></script>
 <script src="/enemy.js"></script>
 <script src="/player.js"></script>
-<!--<script src="/scenemanager.js"></script>-->
 <script src="/zone.js"></script>
 <script src="/main.js"></script>
 
@@ -26,15 +26,17 @@
 
 let socket;
 let zone;
+let chatbox;
 
 const init = () => {
+    chatbox = document.querySelector('#chatbox');
     socket = io.connect();
 
     socket.on('joinDungeon', (data) => {
         console.log('Joining dungeon...', data);
 
         // Make your zone
-        zone = new Zone(io, data);
+        zone = new Zone(socket, data);
 
         // inform other clients of your new zone
         socket.emit('msg', (data) => {
@@ -42,11 +44,45 @@ const init = () => {
             // relevant info (name, loc, etc.)
         });
     });
+
+    socket.on('msg', (data) => {
+        switch(data.msg){
+            case 'chat':
+            console.log(data);
+            break;
+            default:
+            break;
+        }
+    });
+
+    chatbox.onclick = function(){ chatbox.focus(); };
+    chatbox.onkeydown = function(e){
+        console.log(e.keyCode);
+        switch(e.keyCode){
+            case 13: // enter
+            socket.emit('msg', {
+                msg: 'chat', 
+                content: chatbox.value });
+            console.log(chatbox.value);
+            chatbox.blur();
+            break;
+            default:
+            break;
+        }
+    }
+
+
 };
 
 window.onload = init;
 
 </script>
+
+<div id='container'>
+    <div id='chat'></div>
+    <textarea id='chatbox' rows='2', cols='50'></textarea>
+    <button type='button' id='chatbutton'>Send</button>
+</div>
 
 </body>
 </html>
