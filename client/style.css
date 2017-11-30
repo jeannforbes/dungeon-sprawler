@@ -31,8 +31,16 @@ canvas, #container{
     background-color: rgba(255,255,255,0.2);
 }
 #chat{
-    position: relative;
+    position: absolute;
+    height: 200px;
     float: left;
+    overflow-y: scroll;
+    overflow-x: wrap;
+    background-color: black;
+}
+#chat p{
+    position: relative;
+    color: white;
 }
 
 #chatbox{

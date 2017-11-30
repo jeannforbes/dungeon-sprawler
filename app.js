@@ -1,6 +1,7 @@
 const app = require('express')();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
+const Shopkeeper = require('./shopkeeper.js');
 
 // CONSTANTS
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,9 @@ app.get('/style.css', (req, res) => { res.sendFile('style.css', { root: './clien
 app.get('/three-orbitcontrols.min.js', (req, res) => { 
     res.sendFile('three-orbitcontrols.min.js', { root: './client/lib/' }); 
 });
+app.get('/three-objloader.min.js', (req, res) => { 
+    res.sendFile('three-objloader.min.js', { root: './client/lib/' }); 
+});
 
 /* JS */
 app.get('/*.js', (req, res) => {
@@ -25,40 +29,58 @@ app.get('/*.js', (req, res) => {
 });
 
 /* THREE objs */
-app.get('/floortile0.json', (req, res) => res.json(require('./media/models/floortile0.json')));
-app.get('/walltile0.json', (req, res) => res.json(require('./media/models/walltile0.json')));
+/* TEXTURES */
+app.get('/*.obj', (req, res) => {
+    let uid = req.params.uid;
+    let path = req.params[Object.keys(req.params)[0]] ? 
+        req.params[Object.keys(req.params)[0]] : 'gate';
+    res.sendFile(path+'.obj', {root: './media/models/'}); 
+});
 
 /* TEXTURES */
 app.get('/*.jpg', (req, res) => {
     let uid = req.params.uid;
     let path = req.params[Object.keys(req.params)[0]] ? 
-        req.params[Object.keys(req.params)[0]] : 'stonetile0.jpg';
+        req.params[Object.keys(req.params)[0]] : 'stonetile0';
     res.sendFile(path+'.jpg', {root: './media/textures/'}); 
 });
 
-/*
- *    SOCKET SETUP!
- */
+let shopkeeper;
+const init = () => {
+    shopkeeper = new Shopkeeper();
 
-io.on('connection',(socket) => { 
-    console.log(socket.id+' connected.');
+    io.on('connection',(socket) => { 
+        console.log(socket.id+' connected.');
 
-    socket.emit('joinDungeon', {});
+        shopkeeper.openLedger(socket.id);
+        socket.emit('joinDungeon', shopkeeper.buy(socket.id,'DUNGEON_SMALL'));
 
-    socket.on('msg', (data) => {
-        console.log(data);
-        if(data.to && data.msg){
-            io.to(data.to).emit('msg', {
-                id: data.id,
-                msg: data.msg,
-                contents: data.contents,
-            });
-        } else if(data.msg){
-            io.emit('msg', {
-                id: data.id,
-                msg: data.msg,
-                contents: data.contents,
-            });
-        }
+        /* CLIENT COMM. */
+        socket.on('msg', (data) => {
+            if(data.to && data.msg){
+                io.to(data.to).emit('msg', {
+                    id: socket.id,
+                    msg: data.msg,
+                    content: data.content,
+                });
+            } else if(data.msg){
+                io.emit('msg', {
+                    id: socket.id,
+                    msg: data.msg,
+                    content: data.content,
+                });
+            }
+        });
+
+        /* SHOPKEEPER IO */
+
+        // Buy
+
+        // Refund
+
+        // ... trade?
+
     });
-});
+}
+
+init();

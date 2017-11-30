@@ -6,6 +6,12 @@
 </head>
 <body>
 
+<div id='container'>
+    <div id='chat'></div>
+    <textarea id='chatbox' rows='2', cols='50'></textarea>
+    <button type='button' id='chatbutton'>Send</button>
+</div>
+
 <!-- DEPENDENCIES -->
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/88/three.js"></script>
@@ -13,6 +19,7 @@
 
 <!-- LIB -->
 <script src="three-orbitcontrols.min.js"></script>
+<script src="three-objloader.min.js"></script>
 
 <!-- MY SCRIPTS -->
 <script src="/scenemanager.js"></script>
@@ -26,9 +33,11 @@
 
 let socket;
 let zone;
+let chat;
 let chatbox;
 
 const init = () => {
+    chat = document.querySelector('#chat');
     chatbox = document.querySelector('#chatbox');
     socket = io.connect();
 
@@ -36,7 +45,8 @@ const init = () => {
         console.log('Joining dungeon...', data);
 
         // Make your zone
-        zone = new Zone(socket, data);
+        console.log(data);
+        zone = new Zone(socket, data.info);
 
         // inform other clients of your new zone
         socket.emit('msg', (data) => {
@@ -46,9 +56,12 @@ const init = () => {
     });
 
     socket.on('msg', (data) => {
+        console.log(data);
         switch(data.msg){
             case 'chat':
-            console.log(data);
+            let p = document.createElement('p');
+            p.innerText = data.content;
+            chat.appendChild(p);
             break;
             default:
             break;
@@ -57,14 +70,15 @@ const init = () => {
 
     chatbox.onclick = function(){ chatbox.focus(); };
     chatbox.onkeydown = function(e){
-        console.log(e.keyCode);
+        //console.log(e.keyCode);
         switch(e.keyCode){
             case 13: // enter
             socket.emit('msg', {
                 msg: 'chat', 
-                content: chatbox.value });
-            console.log(chatbox.value);
-            chatbox.blur();
+                content: chatbox.value 
+            });
+            chatbox.value = '';
+            //chatbox.blur();
             break;
             default:
             break;
@@ -77,12 +91,5 @@ const init = () => {
 window.onload = init;
 
 </script>
-
-<div id='container'>
-    <div id='chat'></div>
-    <textarea id='chatbox' rows='2', cols='50'></textarea>
-    <button type='button' id='chatbutton'>Send</button>
-</div>
-
 </body>
 </html>
